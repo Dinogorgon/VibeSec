@@ -1,4 +1,4 @@
-import { Check, X, Coffee, Rocket, Crown, Zap, Shield, Sparkles } from 'lucide-react';
+import { Check, Coffee, Rocket, Crown, Zap, Shield, Sparkles } from 'lucide-react';
 
 export default function PricingView({ onBack }: { onBack: () => void }) {
   const plans = [
@@ -99,7 +99,6 @@ export default function PricingView({ onBack }: { onBack: () => void }) {
             const Icon = plan.icon;
             const isVibegreen = plan.color === 'vibegreen';
             const isYellow = plan.color === 'yellow';
-            const isPurple = plan.color === 'purple';
             
             return (
               <div

@@ -44,7 +44,7 @@ export default function ScannerView({ url, scanId, token, onComplete }: ScannerV
           
           // Add new log if message doesn't exist
           const exists = updated.some(log => log.message === data.message);
-          if (!exists) {
+          if (!exists && data.message) {
             const newLogs = [...updated, { 
               id: logIdCounterRef.current++, 
               message: data.message, 
