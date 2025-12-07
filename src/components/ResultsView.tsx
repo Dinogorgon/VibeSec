@@ -87,13 +87,6 @@ export default function ResultsView({ result, onReset, user, token, onApiKeyRequ
         { name: 'Low', value: severityCounts.Low || 0, color: SEVERITY_COLORS.Low },
       ].filter(item => item.value > 0);
 
-  const getScoreColor = (score: number) => {
-    if (score >= 70) return 'text-emerald-500';
-    if (score >= 50) return 'text-orange-500';
-    return 'text-red-500';
-  };
-
-
   const getSeverityBg = (severity: Severity) => {
     switch (severity) {
       case 'Critical':

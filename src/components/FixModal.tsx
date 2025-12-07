@@ -16,7 +16,7 @@ interface FixModalProps {
 export default function FixModal({
   vulnerability,
   techStack,
-  user,
+  user: _user,
   token,
   repositoryUrl,
   onClose,
