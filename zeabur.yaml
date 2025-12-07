@@ -1,0 +1,28 @@
+services:
+  - name: vibesec-backend
+    type: web
+    build:
+      type: nixpacks
+      buildCommand: cd backend && npm install && npm run build
+    deploy:
+      startCommand: cd backend && npm start
+    env:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
+      - key: DATABASE_URL
+        value: ""  # Set in Zeabur dashboard
+      - key: GITHUB_CLIENT_ID
+        value: ""  # Set in Zeabur dashboard
+      - key: GITHUB_CLIENT_SECRET
+        value: ""  # Set in Zeabur dashboard
+      - key: GITHUB_CALLBACK_URL
+        value: ""  # Set in Zeabur dashboard after deployment
+      - key: JWT_SECRET
+        value: ""  # Set in Zeabur dashboard
+      - key: REDIS_URL
+        value: ""  # Set in Zeabur dashboard (Upstash Redis)
+      - key: FRONTEND_URL
+        value: ""  # Set in Zeabur dashboard after Netlify deployment
+
