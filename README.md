@@ -30,47 +30,54 @@ A React application for automated penetration testing of vibe-coded (AI-generate
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd vibesec
+git clone https://github.com/Dinogorgon/VibeSec.git
+cd VibeSec
 ```
 
 2. Install dependencies:
 ```bash
 npm install
+cd backend
+npm install
 ```
 
 3. Set up environment variables:
-```bash
-cp .env.example .env
-```
-
-4. Add your Google Gemini API key to `.env`:
-```
-VITE_GEMINI_API_KEY=your_api_key_here
-```
-
-Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey).
+   - Frontend: See `.env.production.example` in root
+   - Backend: See `backend/.env.production.example`
 
 ### Development
 
-Run the development server:
+Run the development servers:
+
+**Backend:**
+```bash
+cd backend
+npm run dev
+```
+
+**Frontend:**
 ```bash
 npm run dev
 ```
 
-The app will be available at `http://localhost:5173`
+The frontend will be available at `http://localhost:5173` and backend at `http://localhost:3000`
 
 ### Build
 
 Build for production:
 ```bash
 npm run build
+cd backend
+npm run build
 ```
 
-Preview production build:
-```bash
-npm run preview
-```
+## Deployment
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions on deploying to:
+- **Netlify** (Frontend)
+- **Zeabur** (Backend)
+- **Supabase** (Database)
+- **Upstash** (Redis)
 
 ## Usage
 
@@ -82,20 +89,20 @@ npm run preview
 ## Project Structure
 
 ```
-src/
-├── components/          # React components
-│   ├── HomeView.tsx    # Landing page
-│   ├── ScannerView.tsx # Scanning animation
-│   ├── ResultsView.tsx # Dashboard with results
-│   ├── VulnerabilityList.tsx
-│   └── FixModal.tsx   # AI fix generator modal
-├── data/
-│   └── mockData.ts    # Mock vulnerability data
-├── services/
-│   └── geminiService.ts # Gemini API integration
-├── types.ts            # TypeScript interfaces
-├── App.tsx             # Main app component
-└── main.tsx            # Entry point
+├── src/                    # Frontend React application
+│   ├── components/         # React components
+│   ├── services/           # API and WebSocket services
+│   └── types.ts            # TypeScript interfaces
+├── backend/                # Backend Express.js API
+│   ├── src/
+│   │   ├── routes/         # API routes
+│   │   ├── services/       # Business logic and scanners
+│   │   ├── config/         # Configuration files
+│   │   └── migrations/     # Database migrations
+│   └── migrations/         # SQL migration files
+├── netlify.toml            # Netlify deployment config
+├── zeabur.yaml             # Zeabur deployment config
+└── DEPLOYMENT.md           # Deployment guide
 ```
 
 ## Design System
@@ -107,5 +114,4 @@ src/
 
 ## License
 
-MIT
-
+Apache-2.0
