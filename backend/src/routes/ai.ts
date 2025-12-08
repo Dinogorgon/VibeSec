@@ -303,7 +303,7 @@ IMPORTANT:
       }
     }
     
-    res.status(500).json({ error: 'Failed to generate fix. Please try again.' });
+    return res.status(500).json({ error: 'Failed to generate fix. Please try again.' });
   } finally {
     // Cleanup temp directory
     if (tempDir) {
@@ -473,7 +473,6 @@ router.post('/apply-fix', authenticateToken, async (req, res) => {
     const prTitle = `Fix: ${errorType}`;
     
     // Build comprehensive PR description
-    const filesChanged = fixData.files.map(f => f.filePath).join(', ');
     const prDescription = `## 🔒 Security Fix: ${vulnerabilityTitle}
 
 **Severity:** ${vulnerabilitySeverity}
@@ -513,7 +512,7 @@ Please review the changes and merge this pull request to apply the security fix 
     });
   } catch (error) {
     console.error('Apply fix error:', error);
-    res.status(500).json({ error: 'Failed to apply fix. Please try again.' });
+    return res.status(500).json({ error: 'Failed to apply fix. Please try again.' });
   }
 });
 

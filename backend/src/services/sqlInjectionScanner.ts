@@ -85,7 +85,7 @@ async function getAllCodeFiles(dirPath: string, basePath: string = dirPath): Pro
 export async function scanSQLInjection(
   repoPath: string,
   scanId: string,
-  techStack: string[]
+  _techStack: string[]
 ): Promise<Vulnerability[]> {
   const vulnerabilities: Vulnerability[] = [];
   const files = await getAllCodeFiles(repoPath);

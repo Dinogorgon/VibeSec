@@ -15,7 +15,7 @@ function generateToken(userId: string): string {
 }
 
 // Initiate GitHub OAuth flow
-router.get('/github', (req, res) => {
+router.get('/github', (_req, res) => {
   const state = Math.random().toString(36).substring(7);
   const scope = 'repo';
   
@@ -132,7 +132,7 @@ router.get('/me', authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Get user error:', error);
-    res.status(500).json({ error: 'Failed to get user' });
+    return res.status(500).json({ error: 'Failed to get user' });
   }
 });
 
@@ -156,7 +156,7 @@ router.get('/repos', authenticateToken, async (req, res) => {
     res.json(repos);
   } catch (error) {
     console.error('Get repos error:', error);
-    res.status(500).json({ error: 'Failed to get repositories' });
+    return res.status(500).json({ error: 'Failed to get repositories' });
   }
 });
 
@@ -187,7 +187,7 @@ router.post('/gemini-key', authenticateToken, async (req, res) => {
     res.json({ message: 'API key saved successfully' });
   } catch (error) {
     console.error('Save API key error:', error);
-    res.status(500).json({ error: 'Failed to save API key' });
+    return res.status(500).json({ error: 'Failed to save API key' });
   }
 });
 
@@ -205,7 +205,7 @@ router.delete('/gemini-key', authenticateToken, async (req, res) => {
     res.json({ message: 'API key deleted successfully' });
   } catch (error) {
     console.error('Delete API key error:', error);
-    res.status(500).json({ error: 'Failed to delete API key' });
+    return res.status(500).json({ error: 'Failed to delete API key' });
   }
 });
 
@@ -244,12 +244,12 @@ router.put('/gemini-model', authenticateToken, async (req, res) => {
     res.json({ message: 'Model preference updated successfully', model });
   } catch (error) {
     console.error('Update model preference error:', error);
-    res.status(500).json({ error: 'Failed to update model preference' });
+    return res.status(500).json({ error: 'Failed to update model preference' });
   }
 });
 
 // Logout (client-side token removal, but endpoint for consistency)
-router.post('/logout', (req, res) => {
+router.post('/logout', (_req, res) => {
   res.json({ message: 'Logged out successfully' });
 });
 

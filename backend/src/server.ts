@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api', routes);
 
 // Health check
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 

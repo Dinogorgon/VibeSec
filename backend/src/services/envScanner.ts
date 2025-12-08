@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import { readdir, stat } from 'fs/promises';
 import { join, relative } from 'path';
-import { Vulnerability, Severity } from '../types/index.js';
+import { Vulnerability } from '../types/index.js';
 
 const PUBLIC_DIRS = ['public', 'static', 'assets', 'www', 'dist', 'build'];
 

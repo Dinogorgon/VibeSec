@@ -1,7 +1,6 @@
 import { Octokit } from '@octokit/rest';
 import { simpleGit, SimpleGit } from 'simple-git';
 import { promises as fs } from 'fs';
-import { join } from 'path';
 import { config } from '../config/env.js';
 
 export interface GitHubUser {
@@ -40,7 +39,7 @@ export async function getAccessToken(code: string): Promise<string> {
     throw new Error(`Failed to exchange code for access token: ${response.status} ${response.statusText}`);
   }
 
-  const data = await response.json();
+  const data = await response.json() as { error?: string; error_description?: string; access_token?: string };
   
   if (data.error) {
     console.error('GitHub OAuth error response:', data);

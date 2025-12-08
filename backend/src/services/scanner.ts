@@ -26,7 +26,7 @@ interface ScanProgress {
 
 export async function scanRepository(
   repoUrl: string,
-  userId: string,
+  _userId: string,
   githubToken: string,
   scanId: string,
   wsClients: Map<string, WebSocket>

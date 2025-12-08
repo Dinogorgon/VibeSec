@@ -3,8 +3,6 @@ import { config } from '../config/env.js';
 
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;
-const SALT_LENGTH = 64;
-const TAG_LENGTH = 16;
 
 // In production, use a proper key management system
 const ENCRYPTION_KEY = crypto.scryptSync(config.jwtSecret, 'salt', 32);

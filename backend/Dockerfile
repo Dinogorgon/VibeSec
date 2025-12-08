@@ -5,9 +5,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies including devDependencies (needed for TypeScript build)
-# Use --include=dev to ensure devDependencies are installed even in production
-RUN npm ci --include=dev
+# Install all dependencies (npm install includes devDependencies by default)
+RUN npm install
 
 # Copy source code
 COPY . .

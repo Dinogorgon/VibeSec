@@ -66,7 +66,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
     res.json({ scanId });
   } catch (error) {
     console.error('Start scan error:', error);
-    res.status(500).json({ error: 'Failed to start scan' });
+    return res.status(500).json({ error: 'Failed to start scan' });
   }
 });
 
@@ -127,7 +127,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
     });
   } catch (error) {
     console.error('Get scan error:', error);
-    res.status(500).json({ error: 'Failed to get scan' });
+    return res.status(500).json({ error: 'Failed to get scan' });
   }
 });
 
@@ -157,7 +157,7 @@ router.get('/:id/status', authenticateToken, async (req: AuthRequest, res) => {
     });
   } catch (error) {
     console.error('Get scan status error:', error);
-    res.status(500).json({ error: 'Failed to get scan status' });
+    return res.status(500).json({ error: 'Failed to get scan status' });
   }
 });
 
@@ -203,7 +203,7 @@ router.post('/check-access', authenticateToken, async (req: AuthRequest, res) =>
     });
   } catch (error) {
     console.error('Check access error:', error);
-    res.status(500).json({ error: 'Failed to check repository access' });
+    return res.status(500).json({ error: 'Failed to check repository access' });
   }
 });
 
