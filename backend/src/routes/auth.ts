@@ -25,7 +25,7 @@ router.get('/github', (_req, res) => {
     `scope=${scope}&` +
     `state=${state}`;
 
-  res.redirect(authUrl);
+  return res.redirect(authUrl);
 });
 
 // Handle GitHub OAuth callback
@@ -80,7 +80,7 @@ router.get('/github/callback', async (req, res) => {
     const token = generateToken(userId);
 
     // Redirect to frontend with token
-    res.redirect(`${config.frontendUrl}?token=${token}`);
+    return res.redirect(`${config.frontendUrl}?token=${token}`);
   } catch (error) {
     console.error('OAuth callback error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -92,7 +92,7 @@ router.get('/github/callback', async (req, res) => {
                        errorMessage.includes('user') ? 'user_info_failed' :
                        errorMessage.includes('database') ? 'database_error' :
                        'oauth_failed';
-    res.redirect(`${config.frontendUrl}?error=${errorParam}`);
+    return res.redirect(`${config.frontendUrl}?error=${errorParam}`);
   }
 });
 
@@ -121,7 +121,7 @@ router.get('/me', authenticateToken, async (req, res) => {
       // Continue without avatar URL
     }
 
-    res.json({
+    return res.json({
       id: result.rows[0].id,
       githubId: result.rows[0].github_id,
       githubUsername: result.rows[0].github_username,
@@ -153,7 +153,7 @@ router.get('/repos', authenticateToken, async (req, res) => {
     const githubToken = decryptToken(userResult.rows[0].access_token_hash);
     const repos = await getUserRepositories(githubToken);
 
-    res.json(repos);
+    return res.json(repos);
   } catch (error) {
     console.error('Get repos error:', error);
     return res.status(500).json({ error: 'Failed to get repositories' });
@@ -184,7 +184,7 @@ router.post('/gemini-key', authenticateToken, async (req, res) => {
       [encryptedKey, userId]
     );
 
-    res.json({ message: 'API key saved successfully' });
+    return res.json({ message: 'API key saved successfully' });
   } catch (error) {
     console.error('Save API key error:', error);
     return res.status(500).json({ error: 'Failed to save API key' });
@@ -202,7 +202,7 @@ router.delete('/gemini-key', authenticateToken, async (req, res) => {
       [userId]
     );
 
-    res.json({ message: 'API key deleted successfully' });
+    return res.json({ message: 'API key deleted successfully' });
   } catch (error) {
     console.error('Delete API key error:', error);
     return res.status(500).json({ error: 'Failed to delete API key' });
@@ -241,7 +241,7 @@ router.put('/gemini-model', authenticateToken, async (req, res) => {
       [model, userId]
     );
 
-    res.json({ message: 'Model preference updated successfully', model });
+    return res.json({ message: 'Model preference updated successfully', model });
   } catch (error) {
     console.error('Update model preference error:', error);
     return res.status(500).json({ error: 'Failed to update model preference' });
@@ -250,7 +250,7 @@ router.put('/gemini-model', authenticateToken, async (req, res) => {
 
 // Logout (client-side token removal, but endpoint for consistency)
 router.post('/logout', (_req, res) => {
-  res.json({ message: 'Logged out successfully' });
+  return res.json({ message: 'Logged out successfully' });
 });
 
 export default router;

@@ -283,7 +283,7 @@ IMPORTANT:
       [vulnerability.id, userId, repositoryUrl, JSON.stringify(fixData), attemptNumber]
     );
 
-    res.json({
+    return res.json({
       fix: fixData,
       attemptNumber,
       cached: false
@@ -502,7 +502,7 @@ Please review the changes and merge this pull request to apply the security fix 
       body: prDescription,
     });
 
-    res.json({
+    return res.json({
       success: true,
       branchName,
       branchUrl: `https://github.com/${owner}/${repo}/tree/${branchName}`,

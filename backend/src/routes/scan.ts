@@ -63,7 +63,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       jobId: scanId,
     });
 
-    res.json({ scanId });
+    return res.json({ scanId });
   } catch (error) {
     console.error('Start scan error:', error);
     return res.status(500).json({ error: 'Failed to start scan' });
@@ -108,7 +108,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
       [id]
     );
 
-    res.json({
+    return res.json({
       id: scan.id,
       url: scan.repository_url,
       score: scan.score || 0,
@@ -150,7 +150,7 @@ router.get('/:id/status', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(404).json({ error: 'Scan not found' });
     }
 
-    res.json({
+    return res.json({
       status: result.rows[0].status,
       progress: result.rows[0].progress,
       logs: [], // Logs are sent via WebSocket
@@ -196,7 +196,7 @@ router.post('/check-access', authenticateToken, async (req: AuthRequest, res) =>
     // Check repository access
     const accessCheck = await checkRepositoryAccess(repositoryUrl, githubToken);
 
-    res.json({
+    return res.json({
       hasAccess: accessCheck.hasAccess,
       permission: accessCheck.permission,
       isOwner: accessCheck.isOwner,
@@ -220,7 +220,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       [userId]
     );
 
-    res.json(result.rows.map(scan => ({
+    return res.json(result.rows.map(scan => ({
       id: scan.id,
       url: scan.repository_url,
       status: scan.status,
@@ -231,7 +231,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     })));
   } catch (error) {
     console.error('List scans error:', error);
-    res.status(500).json({ error: 'Failed to list scans' });
+    return res.status(500).json({ error: 'Failed to list scans' });
   }
 });
 
