@@ -1,6 +1,9 @@
 import { getApiBaseUrl } from '../utils/apiUrl';
 
-const API_BASE_URL = getApiBaseUrl();
+// Dynamic function - evaluated at runtime, not build time
+function getApiBaseUrlDynamic(): string {
+  return getApiBaseUrl();
+}
 
 export interface ScanStatus {
   status: 'pending' | 'scanning' | 'completed' | 'failed';
@@ -26,7 +29,7 @@ export interface ScanResult {
 }
 
 export const startScan = async (repositoryUrl: string, token: string): Promise<{ scanId: string }> => {
-  const response = await fetch(`${API_BASE_URL}/api/scan`, {
+  const response = await fetch(`${getApiBaseUrlDynamic()}/api/scan`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -44,7 +47,7 @@ export const startScan = async (repositoryUrl: string, token: string): Promise<{
 };
 
 export const getScanStatus = async (scanId: string, token: string): Promise<ScanStatus> => {
-  const response = await fetch(`${API_BASE_URL}/api/scan/${scanId}/status`, {
+  const response = await fetch(`${getApiBaseUrlDynamic()}/api/scan/${scanId}/status`, {
     headers: {
       'Authorization': `Bearer ${token}`,
     },
@@ -59,7 +62,7 @@ export const getScanStatus = async (scanId: string, token: string): Promise<Scan
 };
 
 export const getScanResults = async (scanId: string, token: string): Promise<ScanResult> => {
-  const response = await fetch(`${API_BASE_URL}/api/scan/${scanId}`, {
+  const response = await fetch(`${getApiBaseUrlDynamic()}/api/scan/${scanId}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
     },
@@ -74,7 +77,7 @@ export const getScanResults = async (scanId: string, token: string): Promise<Sca
 };
 
 export const getCurrentUser = async (token: string) => {
-  const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+  const response = await fetch(`${getApiBaseUrlDynamic()}/api/auth/me`, {
     headers: {
       'Authorization': `Bearer ${token}`,
     },
@@ -88,7 +91,7 @@ export const getCurrentUser = async (token: string) => {
 };
 
 export const getUserRepos = async (token: string): Promise<Array<{ name: string; full_name: string; html_url: string; private: boolean }>> => {
-  const response = await fetch(`${API_BASE_URL}/api/auth/repos`, {
+  const response = await fetch(`${getApiBaseUrlDynamic()}/api/auth/repos`, {
     headers: {
       'Authorization': `Bearer ${token}`,
     },
@@ -103,7 +106,7 @@ export const getUserRepos = async (token: string): Promise<Array<{ name: string;
 };
 
 export const saveGeminiApiKey = async (token: string, apiKey: string): Promise<void> => {
-  const response = await fetch(`${API_BASE_URL}/api/auth/gemini-key`, {
+  const response = await fetch(`${getApiBaseUrlDynamic()}/api/auth/gemini-key`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -119,7 +122,7 @@ export const saveGeminiApiKey = async (token: string, apiKey: string): Promise<v
 };
 
 export const deleteGeminiApiKey = async (token: string): Promise<void> => {
-  const response = await fetch(`${API_BASE_URL}/api/auth/gemini-key`, {
+  const response = await fetch(`${getApiBaseUrlDynamic()}/api/auth/gemini-key`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -133,7 +136,7 @@ export const deleteGeminiApiKey = async (token: string): Promise<void> => {
 };
 
 export const updateGeminiModel = async (token: string, model: string): Promise<void> => {
-  const response = await fetch(`${API_BASE_URL}/api/auth/gemini-model`, {
+  const response = await fetch(`${getApiBaseUrlDynamic()}/api/auth/gemini-model`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -149,7 +152,7 @@ export const updateGeminiModel = async (token: string, model: string): Promise<v
 };
 
 export const checkRepositoryAccess = async (token: string, repositoryUrl: string): Promise<{ hasAccess: boolean; permission?: string; isOwner?: boolean }> => {
-  const response = await fetch(`${API_BASE_URL}/api/scan/check-access`, {
+  const response = await fetch(`${getApiBaseUrlDynamic()}/api/scan/check-access`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -189,7 +192,7 @@ export const generateFixWithAI = async (
   repositoryUrl: string,
   useExisting?: boolean
 ): Promise<{ fix: FixData; attemptNumber: number; cached: boolean }> => {
-  const response = await fetch(`${API_BASE_URL}/api/ai/generate-fix`, {
+  const response = await fetch(`${getApiBaseUrlDynamic()}/api/ai/generate-fix`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -212,7 +215,7 @@ export const applyFixToRepository = async (
   repositoryUrl: string,
   attemptNumber?: number
 ): Promise<{ success: boolean; branchName: string; branchUrl: string; prUrl: string; prNumber: number; message: string }> => {
-  const response = await fetch(`${API_BASE_URL}/api/ai/apply-fix`, {
+  const response = await fetch(`${getApiBaseUrlDynamic()}/api/ai/apply-fix`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

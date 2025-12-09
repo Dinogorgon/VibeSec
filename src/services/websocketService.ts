@@ -1,8 +1,20 @@
 import { getApiBaseUrl } from '../utils/apiUrl';
 
-const API_BASE_URL = getApiBaseUrl();
+// Dynamic function - evaluated at runtime, not build time
+function getApiBaseUrlDynamic(): string {
+  return getApiBaseUrl();
+}
+
 // Convert HTTP to WS and HTTPS to WSS for WebSocket connections
-const WS_BASE_URL = API_BASE_URL.replace(/^http/, 'ws').replace(/^https/, 'wss');
+function getWsBaseUrl(): string {
+  const apiUrl = getApiBaseUrlDynamic();
+  if (!apiUrl) {
+    // If using relative URLs (proxy), use wss:// for WebSocket
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${protocol}//${window.location.host}`;
+  }
+  return apiUrl.replace(/^http/, 'ws').replace(/^https/, 'wss');
+}
 
 export interface WebSocketMessage {
   type: 'connected' | 'log' | 'progress' | 'complete' | 'error';
@@ -18,7 +30,7 @@ export const connectToScan = (
   scanId: string,
   onUpdate: (data: WebSocketMessage) => void
 ): (() => void) => {
-  const wsUrl = `${WS_BASE_URL}/ws/scan?scanId=${scanId}`;
+  const wsUrl = `${getWsBaseUrl()}/ws/scan?scanId=${scanId}`;
   console.log('Connecting to WebSocket:', wsUrl);
   const ws = new WebSocket(wsUrl);
 
