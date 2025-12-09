@@ -4,6 +4,12 @@
  */
 export function getApiBaseUrl(): string {
   const envUrl = import.meta.env.VITE_API_URL;
+  
+  // In production, if VITE_API_URL is not set, use relative URLs (Netlify proxy)
+  if (import.meta.env.PROD && !envUrl) {
+    return ''; // Empty string = relative URL, will use Netlify proxy
+  }
+  
   const defaultUrl = 'http://localhost:3000';
   
   if (!envUrl) {
@@ -49,6 +55,12 @@ export function getApiUrl(path: string): string {
   const baseUrl = getApiBaseUrl();
   // Ensure path starts with /
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  
+  // If baseUrl is empty (relative URL), just return the path
+  if (!baseUrl) {
+    return normalizedPath;
+  }
+  
   return `${baseUrl}${normalizedPath}`;
 }
 

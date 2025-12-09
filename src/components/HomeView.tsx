@@ -72,7 +72,16 @@ export default function HomeView({ onStartScan, isAuthenticated = false, token }
           {/* Hero Section */}
           <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight">
             Secure your<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-vibegreen-400 to-indigo-400 inline-block">
+            <span 
+              className="inline-block bg-gradient-to-r from-vibegreen-400 to-indigo-400 bg-clip-text text-transparent"
+              style={{
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                display: 'inline-block',
+                minWidth: 'fit-content',
+              }}
+            >
               vibe coded
             </span>
             <br />apps.
