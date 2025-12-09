@@ -18,7 +18,26 @@ export const handler = async (event, context) => {
       method: event.httpMethod,
       headers: headers,
       body: event.body || undefined,
+      redirect: 'manual', // Don't follow redirects automatically - we'll handle them
     });
+    
+    // Handle redirect responses (301, 302, 307, 308)
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get('location');
+      if (location) {
+        console.log(`Redirecting to: ${location}`);
+        return {
+          statusCode: response.status,
+          headers: {
+            'Location': location,
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          },
+          body: '',
+        };
+      }
+    }
     
     const contentType = response.headers.get('content-type') || 'application/json';
     const data = await response.text();

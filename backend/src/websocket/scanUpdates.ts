@@ -28,8 +28,20 @@ export function setupWebSocketServer(server: Server): void {
       wsClients.delete(scanId);
     });
 
-    ws.on('error', (error) => {
-      console.error(`WebSocket error for scan ${scanId}:`, error);
+    ws.on('error', (error: Error) => {
+      const errorCode = (error as any).code;
+      const errorMessage = error.message;
+      
+      // Suppress ECONNRESET errors - these happen when clients disconnect unexpectedly
+      if (errorCode === 'ECONNRESET' || errorCode === 'ECONNREFUSED' ||
+          errorMessage.includes('ECONNRESET') || errorMessage.includes('ECONNREFUSED')) {
+        // Only log in development
+        if (process.env.NODE_ENV === 'development') {
+          console.warn(`WebSocket connection reset for scan ${scanId} (client disconnected)`);
+        }
+      } else {
+        console.error(`WebSocket error for scan ${scanId}:`, error);
+      }
       wsClients.delete(scanId);
     });
 

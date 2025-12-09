@@ -14,6 +14,15 @@ function generateToken(userId: string): string {
   return jwt.sign({ userId }, config.jwtSecret, { expiresIn: '7d' });
 }
 
+// Helper function to ensure proper frontend redirect URL (always root path)
+function getFrontendRedirect(queryParams: Record<string, string> = {}): string {
+  // Remove any trailing slashes and paths, ensure we redirect to root
+  const baseUrl = config.frontendUrl.replace(/\/+$/, '').split('/').slice(0, 3).join('/');
+  const params = new URLSearchParams(queryParams);
+  const queryString = params.toString();
+  return `${baseUrl}/${queryString ? `?${queryString}` : ''}`;
+}
+
 // Initiate GitHub OAuth flow
 router.get('/github', (_req, res) => {
   const state = Math.random().toString(36).substring(7);
@@ -34,11 +43,11 @@ router.get('/github/callback', async (req, res) => {
     const { code, error } = req.query;
 
     if (error) {
-      return res.redirect(`${config.frontendUrl}?error=${error}`);
+      return res.redirect(getFrontendRedirect({ error: String(error) }));
     }
 
     if (!code || typeof code !== 'string') {
-      return res.redirect(`${config.frontendUrl}?error=missing_code`);
+      return res.redirect(getFrontendRedirect({ error: 'missing_code' }));
     }
 
     // Exchange code for access token
@@ -79,8 +88,8 @@ router.get('/github/callback', async (req, res) => {
     // Generate JWT token
     const token = generateToken(userId);
 
-    // Redirect to frontend with token
-    return res.redirect(`${config.frontendUrl}?token=${token}`);
+    // Redirect to frontend with token (always root path)
+    return res.redirect(getFrontendRedirect({ token }));
   } catch (error) {
     console.error('OAuth callback error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -92,7 +101,7 @@ router.get('/github/callback', async (req, res) => {
                        errorMessage.includes('user') ? 'user_info_failed' :
                        errorMessage.includes('database') ? 'database_error' :
                        'oauth_failed';
-    return res.redirect(`${config.frontendUrl}?error=${errorParam}`);
+    return res.redirect(getFrontendRedirect({ error: errorParam }));
   }
 });
 

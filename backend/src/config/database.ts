@@ -18,7 +18,11 @@ pool.on('error', (err: Error) => {
   
   // ECONNRESET and ECONNREFUSED are recoverable - connection pool will handle reconnection
   if (errorCode === 'ECONNRESET' || errorCode === 'ECONNREFUSED') {
-    console.warn('Database connection error (recoverable):', errorCode, errorMessage);
+    // Suppress these - they're handled by the pool
+    // Only log in development for debugging
+    if (config.nodeEnv === 'development') {
+      console.warn('Database connection error (recoverable):', errorCode);
+    }
     return; // Don't exit process, let pool handle reconnection
   }
   

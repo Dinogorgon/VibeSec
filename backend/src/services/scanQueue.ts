@@ -39,12 +39,18 @@ redis.on('error', (err: Error) => {
   const errorCode = (err as any).code;
   const errorMessage = err.message.toLowerCase();
   
-  // Log ECONNRESET as warning (recoverable)
-  if (errorCode === 'ECONNRESET' || errorMessage.includes('econnreset')) {
-    console.warn('Redis connection reset (recoverable):', err.message);
-  } else {
-    console.error('Redis error:', err);
+  // Suppress ECONNRESET - these are recoverable and handled by reconnectOnError
+  if (errorCode === 'ECONNRESET' || errorMessage.includes('econnreset') ||
+      errorMessage.includes('read econnreset')) {
+    // Only log in development
+    if (config.nodeEnv === 'development') {
+      console.warn('Redis connection reset (recoverable):', err.message);
+    }
+    return; // Don't log as error, reconnectOnError will handle it
   }
+  
+  // Log other errors
+  console.error('Redis error:', err);
 });
 
 redis.on('close', () => {
