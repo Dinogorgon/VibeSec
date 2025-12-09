@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, Loader2, Key } from 'lucide-react';
+import { getApiUrl } from '../utils/apiUrl';
 
 interface ApiKeyModalProps {
   onClose: () => void;
@@ -52,7 +53,7 @@ export default function ApiKeyModal({ onClose, onSave, isLoginPrompt = false }: 
           <div className="flex gap-3">
             <button
               onClick={() => {
-                window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/auth/github`;
+                window.location.replace(getApiUrl('/api/auth/github'));
               }}
               className="flex-1 px-4 py-2 bg-vibegreen-500 hover:bg-vibegreen-600 rounded-lg font-semibold transition-colors"
             >

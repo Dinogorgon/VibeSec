@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { getApiBaseUrl } from '../utils/apiUrl';
+
+const API_BASE_URL = getApiBaseUrl();
 // Convert HTTP to WS and HTTPS to WSS for WebSocket connections
 const WS_BASE_URL = API_BASE_URL.replace(/^http/, 'ws').replace(/^https/, 'wss');
 

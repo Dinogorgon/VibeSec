@@ -113,7 +113,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
       url: scan.repository_url,
       score: scan.score || 0,
       timestamp: scan.completed_at || scan.created_at,
-      vulnerabilities: vulnResult.rows.map(v => ({
+      vulnerabilities: vulnResult.rows.map((v: any) => ({
         id: v.id,
         scanId: scan.id,
         title: v.title,
@@ -220,7 +220,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       [userId]
     );
 
-    return res.json(result.rows.map(scan => ({
+    return res.json(result.rows.map((scan: any) => ({
       id: scan.id,
       url: scan.repository_url,
       status: scan.status,

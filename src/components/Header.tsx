@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Shield, Github, LogOut } from 'lucide-react';
 import ProfilePanel from './ProfilePanel';
 import { User } from '../types';
+import { getApiUrl } from '../utils/apiUrl';
 
 interface HeaderProps {
   onLogoClick?: () => void;
@@ -16,10 +17,9 @@ interface HeaderProps {
 export default function Header({ onLogoClick, user, onLogout, onSettingsClick, onDocsClick, onPricingClick, currentView }: HeaderProps) {
   const [showProfilePanel, setShowProfilePanel] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
   const handleLogin = () => {
-    window.location.href = `${API_BASE_URL}/api/auth/github`;
+    window.location.replace(getApiUrl('/api/auth/github'));
   };
 
   // Close profile panel when clicking outside

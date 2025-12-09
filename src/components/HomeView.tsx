@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Shield, Code, ArrowRight, AlertTriangle } from 'lucide-react';
 import RepoSelector from './RepoSelector';
+import LoginPromptModal from './LoginPromptModal';
 
 interface HomeViewProps {
   onStartScan: (url: string) => void;
@@ -10,6 +11,7 @@ interface HomeViewProps {
 
 export default function HomeView({ onStartScan, isAuthenticated = false, token }: HomeViewProps) {
   const [url, setUrl] = useState('');
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +36,14 @@ export default function HomeView({ onStartScan, isAuthenticated = false, token }
   const handleDemoClick = async () => {
     const demoUrl = 'https://github.com/Dinogorgon/SpotifyTranscriber';
     setUrl(demoUrl);
+    
+    if (!isAuthenticated) {
+      // Store demo URL to scan after login
+      sessionStorage.setItem('pending_scan_url', demoUrl);
+      // Show login modal - user should use header login button
+      setShowLoginModal(true);
+      return;
+    }
     
     try {
       await onStartScan(demoUrl);
@@ -62,7 +72,7 @@ export default function HomeView({ onStartScan, isAuthenticated = false, token }
           {/* Hero Section */}
           <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight">
             Secure your<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-vibegreen-400 to-indigo-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-vibegreen-400 to-indigo-400 inline-block">
               vibe coded
             </span>
             <br />apps.
@@ -149,6 +159,12 @@ export default function HomeView({ onStartScan, isAuthenticated = false, token }
           </div>
         </div>
       </div>
+      {showLoginModal && (
+        <LoginPromptModal
+          onClose={() => setShowLoginModal(false)}
+          message="You need to log in with GitHub to test repositories for vulnerabilities. Please use the 'Login with GitHub' button in the header to authenticate."
+        />
+      )}
     </div>
   );
 }

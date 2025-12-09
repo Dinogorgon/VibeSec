@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { getApiBaseUrl } from '../utils/apiUrl';
+
+const API_BASE_URL = getApiBaseUrl();
 
 export interface ScanStatus {
   status: 'pending' | 'scanning' | 'completed' | 'failed';

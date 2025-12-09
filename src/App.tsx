@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { View, User } from './types';
 import Header from './components/Header';
 import HomeView from './components/HomeView';
@@ -9,6 +9,7 @@ import PricingView from './components/PricingView';
 import ApiKeyModal from './components/ApiKeyModal';
 import ProfileSettings from './components/ProfileSettings';
 import { getCurrentUser, saveGeminiApiKey } from './services/apiService';
+import { getApiUrl } from './utils/apiUrl';
 import './App.css';
 
 function App() {
@@ -75,10 +76,12 @@ function App() {
     }
   }, [token]);
 
-  const handleStartScan = async (url: string): Promise<void> => {
+  const handleStartScan = useCallback(async (url: string): Promise<void> => {
     if (!token) {
+      // Store URL to scan after login
+      sessionStorage.setItem('pending_scan_url', url);
       // Redirect to GitHub OAuth if not authenticated
-      window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/auth/github`;
+      window.location.replace(getApiUrl('/api/auth/github'));
       return;
     }
 
@@ -94,7 +97,23 @@ function App() {
       alert(errorMessage);
       throw error; // Re-throw so caller knows it failed
     }
-  };
+  }, [token]);
+
+  // Check for pending scan URL after login
+  useEffect(() => {
+    if (token) {
+      const pendingUrl = sessionStorage.getItem('pending_scan_url');
+      if (pendingUrl) {
+        sessionStorage.removeItem('pending_scan_url');
+        // Small delay to ensure user state is loaded
+        setTimeout(() => {
+          handleStartScan(pendingUrl).catch((error) => {
+            console.error('Failed to start pending scan:', error);
+          });
+        }, 500);
+      }
+    }
+  }, [token, handleStartScan]);
 
   const handleScanComplete = (result: any) => {
     setScanResult(result);
