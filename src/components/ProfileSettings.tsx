@@ -11,14 +11,15 @@ interface ProfileSettingsProps {
 }
 
 const GEMINI_MODELS = [
+  { value: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite' },
   { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
-  { value: 'gemini-2.0-flash-lite', label: 'Gemini 2.0 Flash Lite' },
-  { value: 'gemini-1.5-flash-latest', label: 'Gemini Flash (Latest)' },
+  { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
+  { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
 ];
 
 export default function ProfileSettings({ user, token, onBack, onUserUpdate }: ProfileSettingsProps) {
   const [apiKey, setApiKey] = useState('');
-  const [selectedModel, setSelectedModel] = useState(user.geminiModel || 'gemini-2.5-flash');
+  const [selectedModel, setSelectedModel] = useState(user.geminiModel || 'gemini-2.5-flash-lite');
   const [loading, setLoading] = useState(false);
   const [modelLoading, setModelLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -28,7 +29,7 @@ export default function ProfileSettings({ user, token, onBack, onUserUpdate }: P
 
   // Update selected model when user changes
   useEffect(() => {
-    setSelectedModel(user.geminiModel || 'gemini-2.5-flash');
+    setSelectedModel(user.geminiModel || 'gemini-2.5-flash-lite');
   }, [user.geminiModel]);
 
   const handleSaveApiKey = async (e: React.FormEvent) => {
@@ -89,7 +90,7 @@ export default function ProfileSettings({ user, token, onBack, onUserUpdate }: P
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update model');
       // Revert selection on error
-      setSelectedModel(user.geminiModel || 'gemini-2.5-flash');
+      setSelectedModel(user.geminiModel || 'gemini-2.5-flash-lite');
     } finally {
       setModelLoading(false);
     }
@@ -161,6 +162,13 @@ export default function ProfileSettings({ user, token, onBack, onUserUpdate }: P
                 ? 'Add an API key first to select a model'
                 : 'Choose which Gemini model to use for AI-generated fixes'}
             </p>
+            {user.hasGeminiKey && (
+              <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                <p className="text-xs text-blue-400">
+                  <strong>Note:</strong> If your preferred model is not available, the system will automatically try alternative models (Gemini 2.5 Flash Lite → Gemini 2.5 Flash → Gemini 2.5 Pro → Gemini 2.0 Flash) until one successfully generates a response.
+                </p>
+              </div>
+            )}
             {modelLoading && (
               <div className="mt-2 flex items-center gap-2 text-sm text-gray-400">
                 <Loader2 className="w-4 h-4 animate-spin" />

@@ -136,7 +136,7 @@ router.get('/me', authenticateToken, async (req, res) => {
       githubUsername: result.rows[0].github_username,
       avatarUrl: avatarUrl,
       hasGeminiKey: !!result.rows[0].gemini_api_key,
-      geminiModel: result.rows[0].gemini_model || 'gemini-pro',
+      geminiModel: result.rows[0].gemini_model || 'gemini-2.5-flash-lite',
       createdAt: result.rows[0].created_at,
     });
   } catch (error) {
@@ -230,12 +230,14 @@ router.put('/gemini-model', authenticateToken, async (req, res) => {
 
     // Validate model name (basic validation - allow common Gemini model names)
     const validModels = [
-      'gemini-pro',
+      'gemini-2.5-flash-lite',
+      'gemini-2.5-flash',
+      'gemini-2.5-pro',
+      'gemini-2.0-flash',
       'gemini-1.5-pro',
       'gemini-1.5-flash',
       'gemini-1.5-flash-latest',
-      'gemini-2.0-flash-exp',
-      'gemini-2.5-pro',
+      'gemini-pro',
     ];
 
     if (!validModels.includes(model)) {

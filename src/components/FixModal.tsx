@@ -13,6 +13,22 @@ interface FixModalProps {
   onClose: () => void;
 }
 
+// Helper function to format model name for display
+const formatModelName = (modelName: string): string => {
+  const modelMap: Record<string, string> = {
+    'gemini-2.5-flash-lite': 'Gemini 2.5 Flash Lite',
+    'gemini-2.5-flash': 'Gemini 2.5 Flash',
+    'gemini-2.5-pro': 'Gemini 2.5 Pro',
+    'gemini-2.0-flash': 'Gemini 2.0 Flash',
+    'gemini-1.5-pro': 'Gemini 1.5 Pro',
+    'gemini-1.5-flash': 'Gemini 1.5 Flash',
+    'gemini-1.5-flash-latest': 'Gemini Flash (Latest)',
+    'gemini-pro': 'Gemini Pro',
+  };
+  
+  return modelMap[modelName] || modelName.replace('gemini-', 'Gemini ').replace(/-/g, ' ');
+};
+
 export default function FixModal({
   vulnerability,
   techStack,
@@ -32,6 +48,7 @@ export default function FixModal({
   const [showSuccessPanel, setShowSuccessPanel] = useState(false);
   const [successData, setSuccessData] = useState<{ prUrl: string; prNumber: number; branchName: string; branchUrl: string } | null>(null);
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [modelUsed, setModelUsed] = useState<string | undefined>(undefined);
 
   const handleGenerateFix = async (useExisting: boolean = true) => {
     // Prevent duplicate calls
@@ -47,6 +64,7 @@ export default function FixModal({
       const result = await generateFixWithAI(token, vulnerability, techStack, repositoryUrl, useExisting);
       setFixData(result.fix);
       setAttemptNumber(result.attemptNumber);
+      setModelUsed(result.modelUsed);
       setHasGenerated(true);
       
       // Expand first file by default
@@ -288,6 +306,11 @@ export default function FixModal({
               <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-800">
                 <h3 className="text-lg font-semibold mb-2">Fix Summary</h3>
                 <p className="text-gray-300 text-sm">{fixData.summary}</p>
+                {modelUsed && (
+                  <p className="text-xs text-gray-500 mt-3 pt-3 border-t border-gray-800">
+                    Generated with <span className="font-medium text-gray-400">{formatModelName(modelUsed)}</span>
+                  </p>
+                )}
               </div>
 
               {/* File Changes */}

@@ -191,7 +191,7 @@ export const generateFixWithAI = async (
   techStack: string[],
   repositoryUrl: string,
   useExisting?: boolean
-): Promise<{ fix: FixData; attemptNumber: number; cached: boolean }> => {
+): Promise<{ fix: FixData; attemptNumber: number; cached: boolean; modelUsed?: string }> => {
   const response = await fetch(`${getApiBaseUrlDynamic()}/api/ai/generate-fix`, {
     method: 'POST',
     headers: {
@@ -237,7 +237,7 @@ export const repromptFix = async (
   vulnerability: { id: string; title: string; description: string; severity: string; location: string },
   techStack: string[],
   repositoryUrl: string
-): Promise<{ fix: FixData; attemptNumber: number; cached: boolean }> => {
+): Promise<{ fix: FixData; attemptNumber: number; cached: boolean; modelUsed?: string }> => {
   // Reprompt is just generate-fix with useExisting=false
   return generateFixWithAI(token, vulnerability, techStack, repositoryUrl, false);
 };

@@ -91,7 +91,8 @@ router.post('/generate-fix', authenticateToken, async (req, res) => {
       return res.json({
         fix: existingFix.rows[0].fix_data,
         attemptNumber: existingFix.rows[0].attempt_number,
-        cached: true
+        cached: true,
+        modelUsed: undefined // Model info not stored for cached responses
       });
     }
 
@@ -106,7 +107,7 @@ router.post('/generate-fix', authenticateToken, async (req, res) => {
     }
 
     const encryptedApiKey = userResult.rows[0].gemini_api_key;
-    const userModel = userResult.rows[0].gemini_model || 'gemini-pro';
+    const userModel = userResult.rows[0].gemini_model || 'gemini-2.5-flash-lite';
     const encryptedGithubToken = userResult.rows[0].access_token_hash;
 
     if (!encryptedApiKey) {
@@ -143,7 +144,12 @@ router.post('/generate-fix', authenticateToken, async (req, res) => {
     // Initialize Gemini AI with fallback model logic
     const genAI = new GoogleGenerativeAI(apiKey);
     
-    // Simplified model selection: Try user's preferred model first, then default to gemini-2.5-flash
+    // Model fallback order:
+    // 1. User's preferred model
+    // 2. gemini-2.5-flash-lite (if not user's preference)
+    // 3. gemini-2.5-flash (if not user's preference)
+    // 4. gemini-2.5-pro (if not user's preference)
+    // 5. gemini-2.0-flash (if not user's preference)
     const modelsToTry: string[] = [];
     
     // First, try user's selected model
@@ -151,9 +157,18 @@ router.post('/generate-fix', authenticateToken, async (req, res) => {
       modelsToTry.push(userModel);
     }
     
-    // Then default to gemini-2.5-flash (known to work)
-    if (!modelsToTry.includes('gemini-2.5-flash')) {
-      modelsToTry.push('gemini-2.5-flash');
+    // Add fallback models in order (only if not already in list)
+    const fallbackModels = [
+      'gemini-2.5-flash-lite',
+      'gemini-2.5-flash',
+      'gemini-2.5-pro',
+      'gemini-2.0-flash',
+    ];
+    
+    for (const fallback of fallbackModels) {
+      if (!modelsToTry.includes(fallback)) {
+        modelsToTry.push(fallback);
+      }
     }
     
     console.log(`Models to try: ${modelsToTry.join(', ')}`);
@@ -233,8 +248,12 @@ IMPORTANT:
         console.log(`Model ${modelToTry} failed:`, error.message || error);
         lastError = error;
         
-        // If it's a 404 (model not found), try next model
-        if (error.status === 404 || error.message?.includes('not found') || error.message?.includes('is not found')) {
+        // If it's a 404 (model not found) or 503 (overloaded), try next model
+        if (error.status === 404 || error.status === 503 || 
+            error.message?.includes('not found') || 
+            error.message?.includes('is not found') ||
+            error.message?.includes('overloaded') ||
+            error.message?.includes('Service Unavailable')) {
           continue; // Try next model
         }
         
@@ -286,7 +305,8 @@ IMPORTANT:
     return res.json({
       fix: fixData,
       attemptNumber,
-      cached: false
+      cached: false,
+      modelUsed: selectedModel
     });
   } catch (error) {
     console.error('Generate fix error:', error);
