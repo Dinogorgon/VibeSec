@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { 
   Shield, 
   Globe, 
   Database, 
   Lock,
-  Bot
+  Bot,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
-import { ScanResult, Severity, User } from '../types';
+import { ScanResult, Severity, User, Vulnerability } from '../types';
 import FixModal from './FixModal';
 import RepositoryAccessErrorModal from './RepositoryAccessErrorModal';
 import { checkRepositoryAccess } from '../services/apiService';
@@ -28,10 +30,61 @@ const SEVERITY_COLORS: Record<Severity, string> = {
   Low: '#3b82f6',
 };
 
+interface VulnerabilityGroup {
+  key: string;
+  title: string;
+  description: string;
+  severity: Severity;
+  vulnerabilities: Vulnerability[];
+}
+
 export default function ResultsView({ result, onReset, user, token, onApiKeyRequired }: ResultsViewProps) {
   const [selectedVulnerability, setSelectedVulnerability] = useState<string | null>(null);
   const [showAccessError, setShowAccessError] = useState(false);
-  const [checkingAccess, setCheckingAccess] = useState(false);
+  const [checkingAccess, setCheckingAccess] = useState<string | null>(null); // Track which vulnerability is being checked
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+
+  // Group vulnerabilities by title + description
+  const vulnerabilityGroups = useMemo(() => {
+    const groups = new Map<string, VulnerabilityGroup>();
+    
+    result.vulnerabilities.forEach(vuln => {
+      const key = `${vuln.title}|${vuln.description}`;
+      if (!groups.has(key)) {
+        groups.set(key, {
+          key,
+          title: vuln.title,
+          description: vuln.description,
+          severity: vuln.severity,
+          vulnerabilities: []
+        });
+      }
+      groups.get(key)!.vulnerabilities.push(vuln);
+    });
+    
+    return Array.from(groups.values());
+  }, [result.vulnerabilities]);
+
+  const toggleGroup = (groupKey: string) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(groupKey)) {
+        next.delete(groupKey);
+      } else {
+        next.add(groupKey);
+      }
+      return next;
+    });
+  };
+
+  const expandAll = () => {
+    const allKeys = new Set(vulnerabilityGroups.map(g => g.key));
+    setExpandedGroups(allKeys);
+  };
+
+  const collapseAll = () => {
+    setExpandedGroups(new Set());
+  };
 
   const handleFixClick = async (vulnId: string) => {
     // Check if user is logged in
@@ -51,13 +104,13 @@ export default function ResultsView({ result, onReset, user, token, onApiKeyRequ
     }
 
     // Check repository access before showing fix modal
-    setCheckingAccess(true);
+    setCheckingAccess(vulnId); // Set specific vulnerability ID
     try {
       const accessCheck = await checkRepositoryAccess(token, result.url);
       
       if (!accessCheck.hasAccess) {
         setShowAccessError(true);
-        setCheckingAccess(false);
+        setCheckingAccess(null);
         return;
       }
 
@@ -68,7 +121,7 @@ export default function ResultsView({ result, onReset, user, token, onApiKeyRequ
       // If check fails, assume no access to be safe
       setShowAccessError(true);
     } finally {
-      setCheckingAccess(false);
+      setCheckingAccess(null);
     }
   };
 
@@ -207,89 +260,181 @@ export default function ResultsView({ result, onReset, user, token, onApiKeyRequ
 
           {/* Vulnerabilities Section */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-xl">
-            <div className="p-6 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-white">
-                Vulnerabilities Found{' '}
-                <span className="text-gray-500 text-sm font-normal">
-                  ({result.vulnerabilities.length})
-                </span>
-              </h2>
-              <div className="flex gap-2 text-sm flex-wrap">
-                {severityCounts.Critical > 0 && (
-                  <span className="flex items-center gap-1 text-red-400">
-                    <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                    Critical ({severityCounts.Critical})
+            <div className="p-6 border-b border-gray-800">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-white">
+                  Vulnerabilities Found{' '}
+                  <span className="text-gray-500 text-sm font-normal">
+                    ({result.vulnerabilities.length})
                   </span>
-                )}
-                {severityCounts.High > 0 && (
-                  <span className="flex items-center gap-1 text-orange-400">
-                    <span className="w-2 h-2 rounded-full bg-orange-500"></span>
-                    High ({severityCounts.High})
-                  </span>
-                )}
-                {severityCounts.Medium > 0 && (
-                  <span className="flex items-center gap-1 text-yellow-400">
-                    <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
-                    Medium ({severityCounts.Medium})
-                  </span>
-                )}
-                {severityCounts.Low > 0 && (
-                  <span className="flex items-center gap-1 text-blue-400">
-                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                    Low ({severityCounts.Low})
-                  </span>
-                )}
-                {result.vulnerabilities.length === 0 && (
-                  <span className="flex items-center gap-1 text-emerald-400">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    None Found
-                  </span>
-                )}
+                </h2>
+                <div className="flex gap-2 text-sm flex-wrap">
+                  {severityCounts.Critical > 0 && (
+                    <span className="flex items-center gap-1 text-red-400">
+                      <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                      Critical ({severityCounts.Critical})
+                    </span>
+                  )}
+                  {severityCounts.High > 0 && (
+                    <span className="flex items-center gap-1 text-orange-400">
+                      <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+                      High ({severityCounts.High})
+                    </span>
+                  )}
+                  {severityCounts.Medium > 0 && (
+                    <span className="flex items-center gap-1 text-yellow-400">
+                      <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
+                      Medium ({severityCounts.Medium})
+                    </span>
+                  )}
+                  {severityCounts.Low > 0 && (
+                    <span className="flex items-center gap-1 text-blue-400">
+                      <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                      Low ({severityCounts.Low})
+                    </span>
+                  )}
+                  {result.vulnerabilities.length === 0 && (
+                    <span className="flex items-center gap-1 text-emerald-400">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      None Found
+                    </span>
+                  )}
+                </div>
               </div>
+              {result.vulnerabilities.length > 0 && (
+                <div className="flex gap-2 mt-4">
+                  <button
+                    onClick={expandAll}
+                    className="px-4 py-2 text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg border border-gray-700 transition-colors"
+                  >
+                    Expand All
+                  </button>
+                  <button
+                    onClick={collapseAll}
+                    className="px-4 py-2 text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg border border-gray-700 transition-colors"
+                  >
+                    Collapse All
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="divide-y divide-gray-800">
-              {result.vulnerabilities.map((vuln) => (
-                <div
-                  key={vuln.id}
-                  className="p-6 hover:bg-gray-800/50 transition-colors group"
-                >
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className={`px-2 py-0.5 rounded text-xs font-bold border ${getSeverityBg(vuln.severity)}`}>
-                          {vuln.severity.toUpperCase()}
-                        </span>
-                        <h3 className="text-lg font-medium text-gray-200">{vuln.title}</h3>
-                      </div>
-                      <p className="text-gray-400 text-sm mb-3">{vuln.description}</p>
-                      <div className="flex items-center gap-2 text-xs text-gray-500 font-mono">
-                        <span className="text-gray-600">LOCATION:</span>
-                        <span className="text-gray-400 bg-gray-800 px-1 rounded">{vuln.location}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <button
-                        onClick={() => handleFixClick(vuln.id)}
-                        disabled={checkingAccess}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-vibegreen-600 hover:bg-vibegreen-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium shadow-lg shadow-vibegreen-900/20 transition-all hover:scale-105"
-                      >
-                        {checkingAccess ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Checking...
-                          </>
-                        ) : (
-                          <>
-                            <Bot className="w-4 h-4" />
-                            Fix with AI
-                          </>
+              {vulnerabilityGroups.map((group) => {
+                const isExpanded = expandedGroups.has(group.key);
+                const isGrouped = group.vulnerabilities.length > 1;
+                
+                return (
+                  <div key={group.key} className="hover:bg-gray-800/50 transition-colors">
+                    {/* Group Header */}
+                    <div
+                      className={`p-6 ${isGrouped ? 'cursor-pointer' : ''}`}
+                      onClick={() => isGrouped && toggleGroup(group.key)}
+                    >
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            {isGrouped && (
+                              <span className="text-gray-500">
+                                {isExpanded ? (
+                                  <ChevronDown className="w-5 h-5" />
+                                ) : (
+                                  <ChevronRight className="w-5 h-5" />
+                                )}
+                              </span>
+                            )}
+                            <span className={`px-2 py-0.5 rounded text-xs font-bold border ${getSeverityBg(group.severity)}`}>
+                              {group.severity.toUpperCase()}
+                            </span>
+                            <h3 className="text-lg font-medium text-gray-200">
+                              {group.title}
+                              {isGrouped && (
+                                <span className="text-gray-500 text-sm font-normal ml-2">
+                                  ({group.vulnerabilities.length} instances)
+                                </span>
+                              )}
+                            </h3>
+                          </div>
+                          <p className="text-gray-400 text-sm mb-3">{group.description}</p>
+                          {!isGrouped && (
+                            <div className="flex items-center gap-2 text-xs text-gray-500 font-mono">
+                              <span className="text-gray-600">LOCATION:</span>
+                              <span className="text-gray-400 bg-gray-800 px-1 rounded">{group.vulnerabilities[0].location}</span>
+                            </div>
+                          )}
+                        </div>
+                        {!isGrouped && (
+                          <div className="flex items-center">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleFixClick(group.vulnerabilities[0].id);
+                              }}
+                              disabled={checkingAccess === group.vulnerabilities[0].id}
+                              className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-vibegreen-600 hover:bg-vibegreen-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium shadow-lg shadow-vibegreen-900/20 transition-all hover:scale-105"
+                            >
+                              {checkingAccess === group.vulnerabilities[0].id ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  Checking...
+                                </>
+                              ) : (
+                                <>
+                                  <Bot className="w-4 h-4" />
+                                  Fix with AI
+                                </>
+                              )}
+                            </button>
+                          </div>
                         )}
-                      </button>
+                      </div>
                     </div>
+                    
+                    {/* Expanded Group Content */}
+                    {isGrouped && isExpanded && (
+                      <div className="border-t border-gray-800 bg-gray-800/30">
+                        {group.vulnerabilities.map((vuln, index) => (
+                          <div
+                            key={vuln.id}
+                            className={`p-6 ${index < group.vulnerabilities.length - 1 ? 'border-b border-gray-800' : ''}`}
+                          >
+                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 text-xs text-gray-500 font-mono mb-2">
+                                  <span className="text-gray-600">INSTANCE {index + 1}:</span>
+                                  <span className="text-gray-400 bg-gray-800 px-1 rounded">{vuln.location}</span>
+                                </div>
+                              </div>
+                              <div className="flex items-center">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleFixClick(vuln.id);
+                                  }}
+                                  disabled={checkingAccess === vuln.id}
+                                  className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-vibegreen-600 hover:bg-vibegreen-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium shadow-lg shadow-vibegreen-900/20 transition-all hover:scale-105"
+                                >
+                                  {checkingAccess === vuln.id ? (
+                                    <>
+                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                      Checking...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Bot className="w-4 h-4" />
+                                      Fix with AI
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

@@ -7,13 +7,37 @@ function getApiBaseUrlDynamic(): string {
 
 // Convert HTTP to WS and HTTPS to WSS for WebSocket connections
 function getWsBaseUrl(): string {
-  const apiUrl = getApiBaseUrlDynamic();
-  if (!apiUrl) {
-    // If using relative URLs (proxy), use wss:// for WebSocket
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    return `${protocol}//${window.location.host}`;
+  // WebSockets can't go through Netlify proxy, so we need absolute URL
+  // Check for explicit WebSocket URL first
+  const wsUrl = import.meta.env.VITE_WS_URL;
+  if (wsUrl) {
+    // Remove trailing slashes and ensure protocol
+    let url = wsUrl.trim().replace(/\/+$/, '');
+    if (!url.match(/^wss?:\/\//i)) {
+      // Default to wss in production, ws in development
+      const protocol = import.meta.env.PROD ? 'wss://' : 'ws://';
+      url = protocol + url;
+    }
+    return url;
   }
-  return apiUrl.replace(/^http/, 'ws').replace(/^https/, 'wss');
+  
+  // Fallback to API URL if set
+  const apiUrl = getApiBaseUrlDynamic();
+  if (apiUrl) {
+    return apiUrl.replace(/^http/, 'ws').replace(/^https/, 'wss');
+  }
+  
+  // Last resort: try to use Render backend URL from environment
+  // This should be set in production
+  if (import.meta.env.PROD) {
+    console.error('[WebSocket] VITE_WS_URL not set. WebSocket connections will fail.');
+    console.error('[WebSocket] Please set VITE_WS_URL in Netlify environment variables to your Render backend URL.');
+    // Return empty to fail gracefully
+    return '';
+  }
+  
+  // Development fallback
+  return 'ws://localhost:3000';
 }
 
 export interface WebSocketMessage {

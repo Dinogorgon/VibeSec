@@ -31,21 +31,48 @@ export default function ScannerView({ url, scanId, token, onComplete }: ScannerV
     setLogs([{ id: 0, message: `Initializing scan for ${url}...`, status: 'active' }]);
     setProgress(0);
 
+    let wsConnected = false;
+    let wsErrorShown = false;
+
     // Connect to WebSocket for real-time updates
     const cleanup = connectToScan(scanId, (data: WebSocketMessage) => {
       console.log('WebSocket message received:', data);
       
-      if (data.type === 'log' && data.message) {
+      if (data.type === 'connected') {
+        wsConnected = true;
+        wsErrorShown = false;
+        console.log('WebSocket connected for scan:', scanId);
+        setLogs((prev) => {
+          // Remove any WebSocket error messages
+          const filtered = prev.filter(log => 
+            !log.message.includes('WebSocket') && !log.message.includes('connection error')
+          );
+          if (filtered.length === 0 || filtered[0].message.includes('Initializing')) {
+            return [{ id: 0, message: `Connected to scan server...`, status: 'complete' }];
+          }
+          return filtered;
+        });
+      } else if (data.type === 'log' && data.message) {
+        // Clear any previous WebSocket errors when we get real updates
+        if (wsConnected) {
+          wsErrorShown = false;
+        }
+        
         setLogs((prev) => {
           // Mark previous active log as complete
           const updated = prev.map((log) => 
             log.status === 'active' ? { ...log, status: 'complete' as const } : log
           );
           
+          // Remove WebSocket error messages if we're getting real updates
+          const filtered = updated.filter(log => 
+            !log.message.includes('WebSocket') && !log.message.includes('connection error')
+          );
+          
           // Add new log if message doesn't exist
-          const exists = updated.some(log => log.message === data.message);
+          const exists = filtered.some(log => log.message === data.message);
           if (!exists && data.message) {
-            const newLogs = [...updated, { 
+            const newLogs = [...filtered, { 
               id: logIdCounterRef.current++, 
               message: data.message, 
               status: data.status || 'active' 
@@ -58,7 +85,7 @@ export default function ScannerView({ url, scanId, token, onComplete }: ScannerV
             }, 0);
             return newLogs;
           }
-          return updated;
+          return filtered;
         });
       } else if (data.type === 'progress' && data.progress !== undefined) {
         setProgress(data.progress);
@@ -69,21 +96,11 @@ export default function ScannerView({ url, scanId, token, onComplete }: ScannerV
         ));
         setProgress(100);
         onComplete(data.result);
-      } else if (data.type === 'error') {
-        console.error('Scan error:', data.error);
-        setLogs((prev) => [...prev, { 
-          id: logIdCounterRef.current++, 
-          message: `Error: ${data.error}`, 
-          status: 'complete' 
-        }]);
-      } else if (data.type === 'connected') {
-        console.log('WebSocket connected for scan:', scanId);
-        setLogs((prev) => {
-          if (prev.length === 0 || prev[0].message.includes('Initializing')) {
-            return [{ id: 0, message: `Connected to scan server...`, status: 'complete' }];
-          }
-          return prev;
-        });
+      } else if (data.type === 'error' && !wsErrorShown) {
+        // Only show WebSocket error once, and don't block if polling is working
+        wsErrorShown = true;
+        console.warn('WebSocket error (falling back to polling):', data.error);
+        // Don't add error to logs - polling will handle updates
       }
     });
 
@@ -93,6 +110,29 @@ export default function ScannerView({ url, scanId, token, onComplete }: ScannerV
         const { getScanStatus } = await import('../services/apiService');
         const status = await getScanStatus(scanId, token);
         setProgress(status.progress);
+        
+        // Update logs based on progress
+        if (status.progress > 0 && status.progress < 100) {
+          const progressMessage = `Scanning... ${status.progress}% complete`;
+          setLogs((prev) => {
+            const exists = prev.some(log => log.message === progressMessage);
+            if (!exists && prev.length > 0) {
+              const updated = prev.map(log => 
+                log.status === 'active' ? { ...log, status: 'complete' as const } : log
+              );
+              // Remove WebSocket errors
+              const filtered = updated.filter(log => 
+                !log.message.includes('WebSocket') && !log.message.includes('connection error')
+              );
+              return [...filtered, { 
+                id: logIdCounterRef.current++, 
+                message: progressMessage, 
+                status: 'active' 
+              }];
+            }
+            return prev;
+          });
+        }
         
         if (status.status === 'completed') {
           const { getScanResults } = await import('../services/apiService');
