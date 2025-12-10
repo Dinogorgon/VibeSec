@@ -54,8 +54,9 @@
 ### Netlify (Frontend)
 
 1. **Environment Variables**:
-   - ✅ `VITE_API_URL` = `http://vibesec.zeabur.app` (or your Zeabur backend URL)
-   - ⚠️ **IMPORTANT**: Ensure URL has protocol (`http://` or `https://`)
+   - ✅ `BACKEND_URL` = `https://your-render-app.onrender.com` (for Netlify proxy function)
+   - ⚠️ **IMPORTANT**: If using proxy (recommended), you don't need `VITE_API_URL`
+   - ⚠️ **IMPORTANT**: Ensure URL has protocol (`https://`)
    - ⚠️ **IMPORTANT**: No trailing slash
 
 2. **Build Settings**:
@@ -63,21 +64,21 @@
    - ✅ Publish directory: `dist`
    - ✅ Node version: 18
 
-### Zeabur (Backend)
+### Render (Backend)
 
-1. **Environment Variables** (Set in Zeabur dashboard):
+1. **Environment Variables** (Set in Render dashboard):
    - ✅ `DATABASE_URL` - Supabase PostgreSQL connection string
    - ✅ `GITHUB_CLIENT_ID` - GitHub OAuth app client ID
    - ✅ `GITHUB_CLIENT_SECRET` - GitHub OAuth app client secret
-   - ✅ `GITHUB_CALLBACK_URL` - `http://vibesec.zeabur.app/api/auth/github/callback`
+   - ✅ `GITHUB_CALLBACK_URL` - `https://your-render-app.onrender.com/api/auth/github/callback`
    - ✅ `JWT_SECRET` - Random secret key
    - ✅ `REDIS_URL` - Upstash Redis connection URL
    - ✅ `FRONTEND_URL` - `https://vibe-sec.netlify.app` (your Netlify URL)
-   - ✅ `PORT` - `10000` (Zeabur default)
+   - ✅ `PORT` - `10000` (Render sets this automatically, but include as fallback)
    - ✅ `NODE_ENV` - `production`
 
 2. **GitHub OAuth App Settings**:
-   - ✅ Authorization callback URL: `http://vibesec.zeabur.app/api/auth/github/callback`
+   - ✅ Authorization callback URL: `https://your-render-app.onrender.com/api/auth/github/callback`
    - ✅ Homepage URL: `https://vibe-sec.netlify.app`
 
 ### Database
@@ -99,18 +100,19 @@
    - Verify build succeeds
    - Check `VITE_API_URL` environment variable
 
-3. **Zeabur**:
-   - Auto-deploys on push
+3. **Render**:
+   - Auto-deploys on push (if `render.yaml` is present or auto-deploy enabled)
    - Set all environment variables in dashboard
    - Verify deployment succeeds
-   - Get backend URL (e.g., `http://vibesec.zeabur.app`)
+   - Get backend URL (e.g., `https://vibesec-backend.onrender.com`)
 
 4. **Update GitHub OAuth App**:
-   - Set callback URL to Zeabur backend URL
+   - Set callback URL to Render backend URL
    - Set homepage URL to Netlify frontend URL
 
 5. **Update Netlify Environment Variable**:
-   - Set `VITE_API_URL` to Zeabur backend URL
+   - Set `BACKEND_URL` to Render backend URL (for proxy function)
+   - If not using proxy, set `VITE_API_URL` to Render backend URL
    - Trigger rebuild
 
 6. **Test**:
@@ -122,9 +124,7 @@
 
 ## ⚠️ Important Notes
 
-1. **Mixed Content**: If backend is HTTP and frontend is HTTPS, browsers may block requests. Consider:
-   - Using HTTPS for backend (Zeabur may provide this)
-   - Or using Netlify proxy functions
+1. **Mixed Content**: Render provides HTTPS by default, so mixed content issues shouldn't occur. If using Netlify proxy, ensure `BACKEND_URL` is set correctly.
 
 2. **CORS**: Backend CORS is configured for `FRONTEND_URL`. Ensure this matches your Netlify URL exactly.
 
@@ -152,5 +152,5 @@
 
 ## ✅ Ready for Deployment
 
-All issues have been fixed and verified. The codebase is ready to push to GitHub and deploy to Netlify/Zeabur.
+All issues have been fixed and verified. The codebase is ready to push to GitHub and deploy to Netlify/Render.
 

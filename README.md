@@ -75,7 +75,7 @@ npm run build
 
 See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions on deploying to:
 - **Netlify** (Frontend)
-- **Zeabur** (Backend)
+- **Render** (Backend)
 - **Supabase** (Database)
 - **Upstash** (Redis)
 
@@ -101,7 +101,8 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions on deploying to:
 │   │   └── migrations/     # Database migrations
 │   └── migrations/         # SQL migration files
 ├── netlify.toml            # Netlify deployment config
-├── zeabur.yaml             # Zeabur deployment config
+├── render.yaml             # Render deployment config
+├── zeabur.yaml             # Zeabur deployment config (deprecated - using Render)
 └── DEPLOYMENT.md           # Deployment guide
 ```
 

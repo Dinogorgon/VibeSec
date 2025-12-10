@@ -1,7 +1,20 @@
 export const handler = async (event, context) => {
   // Remove the /api prefix since we're proxying from /api/*
   const path = event.path.replace('/.netlify/functions/proxy', '');
-  const backendUrl = process.env.BACKEND_URL || 'http://vibesec.zeabur.app';
+  // Backend URL from environment variable (set in Netlify dashboard)
+  // Format: https://your-service-name.onrender.com
+  const backendUrl = process.env.BACKEND_URL || '';
+  
+  if (!backendUrl) {
+    console.error('BACKEND_URL environment variable not set in Netlify');
+    return {
+      statusCode: 500,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ error: 'Backend URL not configured' }),
+    };
+  }
   
   // Build the full backend URL
   const url = `${backendUrl}${path}${event.rawQuery ? `?${event.rawQuery}` : ''}`;
