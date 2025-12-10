@@ -200,7 +200,7 @@ function App() {
           />
         ) : (
           <>
-            {view === 'home' && <HomeView onStartScan={handleStartScan} isAuthenticated={!!token} token={token} />}
+            {view === 'home' && <HomeView onStartScan={handleStartScan} isAuthenticated={!!token && !!user} token={token} />}
             {view === 'scanning' && token && scanId && (
               <ScannerView url={scanUrl} scanId={scanId} token={token} onComplete={handleScanComplete} />
             )}

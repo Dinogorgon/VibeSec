@@ -21,6 +21,15 @@ export default function HomeView({ onStartScan, isAuthenticated = false, token }
       return;
     }
 
+    // Check if user is authenticated before starting scan
+    if (!isAuthenticated || !token) {
+      // Store URL to scan after login
+      sessionStorage.setItem('pending_scan_url', url.trim());
+      // Show login modal
+      setShowLoginModal(true);
+      return;
+    }
+
     try {
       await onStartScan(url.trim());
     } catch (error) {
@@ -33,24 +42,10 @@ export default function HomeView({ onStartScan, isAuthenticated = false, token }
     setUrl(repoUrl);
   };
 
-  const handleDemoClick = async () => {
+  const handleDemoClick = () => {
     const demoUrl = 'https://github.com/Dinogorgon/SpotifyTranscriber';
     setUrl(demoUrl);
-    
-    if (!isAuthenticated) {
-      // Store demo URL to scan after login
-      sessionStorage.setItem('pending_scan_url', demoUrl);
-      // Show login modal - user should use header login button
-      setShowLoginModal(true);
-      return;
-    }
-    
-    try {
-      await onStartScan(demoUrl);
-    } catch (error) {
-      console.error('Demo scan error:', error);
-      // Error is handled in App.tsx with alert
-    }
+    // Just fill in the URL, don't trigger scan
   };
 
   return (
@@ -94,11 +89,11 @@ export default function HomeView({ onStartScan, isAuthenticated = false, token }
           {/* Input Form */}
           <div className="w-full max-w-4xl mx-auto mb-12">
             <div className="flex flex-col md:flex-row gap-4 items-center">
-              {isAuthenticated && token && (
+              {isAuthenticated && token ? (
                 <div className="flex-shrink-0">
                   <RepoSelector token={token} onSelectRepo={handleRepoSelect} />
                 </div>
-              )}
+              ) : null}
               <form onSubmit={handleSubmit} className="flex-1">
                 <div className="flex flex-col md:flex-row gap-4 p-2 bg-gray-900/50 border border-gray-700 rounded-xl backdrop-blur-sm shadow-2xl items-center">
                   <div className="flex-1 flex items-center px-4 w-full min-w-0">
@@ -171,7 +166,7 @@ export default function HomeView({ onStartScan, isAuthenticated = false, token }
       {showLoginModal && (
         <LoginPromptModal
           onClose={() => setShowLoginModal(false)}
-          message="You need to log in with GitHub to test repositories for vulnerabilities. Please use the 'Login with GitHub' button in the header to authenticate."
+          message="You need to log in with GitHub to scan repositories for vulnerabilities. Please use the 'Login with GitHub' button in the header to authenticate, then try scanning again."
         />
       )}
     </div>
